@@ -1,9 +1,13 @@
-# Robô ERP: cadastro de fornecedores (exemplo do Next Automate)
+# Robô ERP: rotina de contas a pagar (exemplo do Next Automate)
 
-1. Abre o `dados.txt` no Bloco de Notas, para mostrar os dados, e conta 3 segundos.
-2. Abre o `erp.html` no Edge (Playwright, perfil fixo em `%LOCALAPPDATA%\NextAutomate\robo-erp\perfil-edge`), vai em **Fornecedores**, limpa a lista e, para cada linha, clica em **Novo fornecedor**, preenche e salva.
-3. Com o ERP aberto, abre a Calculadora por cima, soma os valores e confere com a conta do robô. Sai com erro se não bater.
+1. Mostra o `dados.txt` no Bloco de Notas e conta 3 segundos.
+2. Abre o `erp.html` no Edge e entra com usuário `robo` e senha `next123`.
+3. **Fornecedores:** cadastra os 15 (Novo fornecedor > preenche > Salvar).
+4. **Contas a pagar:** lança uma conta por fornecedor, com o vencimento do `dados.txt`.
+5. **Pagamentos:** filtra as que vencem em até 7 dias e dá baixa em cada uma.
+6. **Relatório:** exporta as contas em aberto para `Documentos\contas-em-aberto.csv` e abre no Bloco de Notas.
+7. **Calculadora** por cima do ERP: soma o que ficou em aberto e confere com o ERP e com a conta do robô.
 
-`dados.txt`: `Razão social;CNPJ;E-mail;Categoria;Valor`, com a primeira linha de cabeçalho. Os CNPJs são fictícios.
+Cada etapa vai para o log, com uma foto da tela nos artefatos da execução.
 
-Testar no PC: `nextautomate run` nesta pasta.
+`dados.txt`: `Razão social;CNPJ;E-mail;Categoria;Valor;Vence em (dias)`, com cabeçalho. Os CNPJs são fictícios.
