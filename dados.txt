@@ -1,15 +1,16 @@
-Ana Beatriz Souza;526.018.159-06;1250,00
-Bruno Carvalho Lima;083.016.613-05;389,90
-Camila Ferreira Rocha;186.091.390-34;4720,15
-Diego Martins Alves;996.030.824-30;95,50
-Eduarda Ribeiro Costa;628.194.821-12;2310,00
-Felipe Gomes Pereira;993.518.190-19;678,35
-Gabriela Nunes Barbosa;937.865.797-41;1500,00
-Henrique Araújo Mendes;543.231.948-97;842,10
-Isabela Cardoso Teixeira;757.491.186-06;3999,99
-João Pedro Moreira;252.760.189-87;120,00
-Larissa Pinto Correia;555.979.711-15;2045,60
-Marcos Vinícius Dias;471.049.746-01;560,25
-Natália Cunha Ramos;507.529.170-80;7300,00
-Otávio Freitas Lopes;342.366.712-55;215,80
-Patrícia Monteiro Castro;768.426.846-50;1088,40
+Razão social;CNPJ;E-mail;Categoria;Valor
+Alfa Embalagens Ltda;45.124.508/0001-30;contato@alfa.com.br;Embalagens;3450,00
+Beta Transportes Ltda;54.276.042/0001-89;contato@beta.com.br;Transporte;12890,50
+Ciclo Papelaria ME;61.541.099/0001-23;contato@ciclo.com.br;Material de escritório;780,35
+Delta Informática Ltda;14.914.562/0001-55;contato@delta.com.br;Tecnologia;25600,00
+Eco Limpeza Serviços Ltda;19.425.317/0001-06;contato@eco.com.br;Serviços;4300,00
+Forte Segurança Patrimonial;33.092.842/0001-70;contato@forte.com.br;Serviços;9800,00
+Gama Alimentos Ltda;64.761.240/0001-91;contato@gama.com.br;Alimentação;2150,75
+Horizonte Gráfica e Editora;04.669.344/0001-49;contato@horizonte.com.br;Material de escritório;5600,40
+Ideal Móveis para Escritório;48.442.271/0001-23;contato@ideal.com.br;Mobiliário;18320,00
+Jota Manutenção Predial;27.899.876/0001-78;contato@jota.com.br;Serviços;3990,90
+Kappa Energia Solar Ltda;50.332.367/0001-80;contato@kappa.com.br;Energia;47500,00
+Luz Elétrica Comercial;29.035.409/0001-25;contato@luz.com.br;Materiais elétricos;1275,60
+Mar Azul Logística Ltda;48.541.782/0001-00;contato@mar.com.br;Transporte;15400,00
+Norte Peças Industriais;01.766.828/0001-18;contato@norte.com.br;Peças;6830,25
+Ômega Consultoria Contábil;10.005.881/0001-97;contato@omega.com.br;Consultoria;8900,00

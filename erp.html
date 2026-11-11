@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gestão Pro · Cadastro de clientes</title>
+<title>Gestão Pro · Fornecedores</title>
 <style>
   :root {
     --fundo: #f3f5f9;
@@ -19,88 +19,48 @@
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
-    color: var(--texto);
-    background: var(--fundo);
-    display: grid;
-    grid-template-columns: 220px 1fr;
-    min-height: 100vh;
+    margin: 0; font: 14px/1.45 "Segoe UI", system-ui, sans-serif; color: var(--texto); background: var(--fundo);
+    display: grid; grid-template-columns: 230px 1fr; min-height: 100vh;
   }
-  aside {
-    background: var(--barra);
-    color: #c9d3ea;
-    padding: 20px 14px;
-  }
-  .marca {
-    display: flex; align-items: center; gap: 10px;
-    color: #fff; font-weight: 700; font-size: 16px;
-    margin: 0 6px 28px;
-  }
-  .marca span {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: linear-gradient(135deg, #4d7cff, #2457d6);
-    display: grid; place-items: center; font-size: 15px;
-  }
-  nav a {
-    display: block; padding: 9px 12px; margin-bottom: 2px;
-    color: inherit; text-decoration: none; border-radius: 7px;
-  }
-  nav a.ativo { background: rgba(255,255,255,.1); color: #fff; }
-  nav small {
-    display: block; margin: 18px 12px 6px;
-    font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #7e8aa8;
-  }
-  main { padding: 26px 32px; min-width: 0; width: 100%; max-width: 1280px; }
-  header {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 20px;
-  }
+  aside { background: var(--barra); color: #c9d3ea; padding: 20px 14px; }
+  .marca { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 16px; margin: 0 6px 28px; }
+  .marca span { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #4d7cff, #2457d6); display: grid; place-items: center; }
+  nav a { display: block; padding: 9px 12px; margin-bottom: 2px; color: inherit; text-decoration: none; border-radius: 7px; cursor: pointer; }
+  nav a:hover { background: rgba(255,255,255,.06); }
+  nav a.ativo { background: rgba(255,255,255,.12); color: #fff; }
+  nav small { display: block; margin: 18px 12px 6px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #7e8aa8; }
+  main { padding: 26px 32px; min-width: 0; max-width: 1280px; width: 100%; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; gap: 16px; }
   .trilha { color: var(--suave); font-size: 12px; }
   h1 { margin: 4px 0 0; font-size: 22px; }
-  .usuario { color: var(--suave); font-size: 13px; }
-  .cartao {
-    background: var(--painel); border: 1px solid var(--borda);
-    border-radius: 12px; padding: 20px 22px; margin-bottom: 20px;
-    box-shadow: 0 1px 2px rgba(20,32,57,.04);
-  }
+  .cartao { background: var(--painel); border: 1px solid var(--borda); border-radius: 12px; padding: 20px 22px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(20,32,57,.04); }
   .cartao h2 { margin: 0 0 16px; font-size: 15px; }
-  form {
-    display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 14px; align-items: end;
-  }
-  label { display: grid; gap: 5px; font-size: 12px; font-weight: 600; color: var(--suave); }
-  input {
-    font: inherit; color: var(--texto);
-    padding: 9px 11px; border: 1px solid var(--borda); border-radius: 8px;
-    background: #fbfcfe; outline: none;
-  }
-  input:focus { border-color: var(--primaria); box-shadow: 0 0 0 3px rgba(36,87,214,.15); background: #fff; }
-  button {
-    font: inherit; font-weight: 600; cursor: pointer;
-    padding: 9px 18px; border-radius: 8px; border: 1px solid transparent;
-  }
+  button { font: inherit; font-weight: 600; cursor: pointer; padding: 9px 18px; border-radius: 8px; border: 1px solid transparent; }
   .primario { background: var(--primaria); color: #fff; }
   .primario:hover { background: var(--primaria-escura); }
   .secundario { background: #fff; border-color: var(--borda); color: var(--texto); }
-  .aviso { min-height: 20px; margin-top: 12px; font-size: 13px; }
-  .aviso.ok { color: var(--ok); }
-  .aviso.erro { color: var(--perigo); }
+  .perigo { background: #fff; border-color: #f2c9c9; color: var(--perigo); }
   .resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
-  .resumo div {
-    background: var(--painel); border: 1px solid var(--borda); border-radius: 12px; padding: 14px 18px;
-  }
-  .resumo b { display: block; font-size: 22px; margin-top: 2px; }
+  .resumo div { background: var(--painel); border: 1px solid var(--borda); border-radius: 12px; padding: 14px 18px; }
+  .resumo b { display: block; font-size: 22px; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .resumo small { color: var(--suave); }
-  .topo-lista { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .topo-lista h2 { margin: 0; }
   table { width: 100%; border-collapse: collapse; }
   th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--borda); }
   th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); background: #f8f9fc; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  tbody tr:hover { background: #f8faff; }
   .vazio { text-align: center; color: var(--suave); padding: 28px; }
-  .novo { animation: brilho 1.2s ease-out; }
+  .etiqueta { display: inline-block; padding: 2px 9px; border-radius: 99px; background: #eef2fb; color: #3b4a6b; font-size: 12px; }
+  .novo { animation: brilho 1.4s ease-out; }
   @keyframes brilho { from { background: #e4ecff; } to { background: transparent; } }
+  .formulario { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+  .formulario .largo { grid-column: 1 / -1; }
+  label { display: grid; gap: 5px; font-size: 12px; font-weight: 600; color: var(--suave); }
+  input, select { font: inherit; color: var(--texto); padding: 9px 11px; border: 1px solid var(--borda); border-radius: 8px; background: #fbfcfe; outline: none; }
+  input:focus, select:focus { border-color: var(--primaria); box-shadow: 0 0 0 3px rgba(36,87,214,.15); background: #fff; }
+  .acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+  .toast { position: fixed; right: 24px; bottom: 24px; background: var(--ok); color: #fff; padding: 12px 18px; border-radius: 10px; font-weight: 600; box-shadow: 0 10px 30px -10px rgba(0,0,0,.35); opacity: 0; transform: translateY(10px); transition: .25s; }
+  .toast.mostrar { opacity: 1; transform: none; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -108,139 +68,129 @@
   <div class="marca"><span>G</span>Gestão Pro</div>
   <nav>
     <small>Cadastros</small>
-    <a class="ativo" href="#">Clientes</a>
-    <a href="#">Fornecedores</a>
-    <a href="#">Produtos</a>
+    <a id="menu-inicio" data-tela="inicio">Início</a>
+    <a id="menu-clientes">Clientes</a>
+    <a id="menu-fornecedores" data-tela="lista">Fornecedores</a>
+    <a>Produtos</a>
     <small>Financeiro</small>
-    <a href="#">Contas a receber</a>
-    <a href="#">Contas a pagar</a>
+    <a>Contas a pagar</a>
+    <a>Contas a receber</a>
   </nav>
 </aside>
 
 <main>
-  <header>
-    <div>
-      <div class="trilha">Cadastros › Clientes</div>
-      <h1>Cadastro de clientes</h1>
-    </div>
-    <div class="usuario">Operador: robô</div>
-  </header>
+  <section id="tela-inicio">
+    <header><div><div class="trilha">Gestão Pro</div><h1>Bom dia!</h1></div></header>
+    <div class="cartao">Escolha um cadastro no menu ao lado.</div>
+  </section>
 
-  <section class="cartao">
-    <h2>Novo cliente</h2>
-    <form id="form" autocomplete="off">
-      <label>Nome completo
-        <input id="nome" name="nome" required placeholder="Ex.: Maria da Silva">
-      </label>
-      <label>CPF
-        <input id="cpf" name="cpf" required placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
-      </label>
-      <label>Valor (R$)
-        <input id="valor" name="valor" required placeholder="0,00" inputmode="decimal">
-      </label>
-      <button id="salvar" class="primario" type="submit">Salvar</button>
+  <section id="tela-lista" hidden>
+    <header>
+      <div><div class="trilha">Cadastros › Fornecedores</div><h1>Fornecedores</h1></div>
+      <div style="display:flex;gap:10px">
+        <button class="perigo" id="limpar">Limpar lista</button>
+        <button class="primario" id="novo-fornecedor">+ Novo fornecedor</button>
+      </div>
+    </header>
+    <div class="resumo">
+      <div><small>Fornecedores</small><b id="qtd">0</b></div>
+      <div><small>Valor em contratos</small><b id="total">R$ 0,00</b></div>
+      <div><small>Último cadastro</small><b id="ultimo" style="font-size:15px">—</b></div>
+    </div>
+    <div class="cartao" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th>Razão social</th><th>CNPJ</th><th>E-mail</th><th>Categoria</th><th class="num">Valor</th></tr></thead>
+        <tbody id="lista"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="tela-form" hidden>
+    <header><div><div class="trilha">Cadastros › Fornecedores › Novo</div><h1>Novo fornecedor</h1></div></header>
+    <form class="cartao" id="form">
+      <div class="formulario">
+        <label class="largo">Razão social<input id="razao" required></label>
+        <label>CNPJ<input id="cnpj" required placeholder="00.000.000/0000-00" maxlength="18"></label>
+        <label>E-mail<input id="email" type="email" required></label>
+        <label>Categoria
+          <select id="categoria" required>
+            <option value="">Escolha</option>
+            <option>Alimentação</option><option>Consultoria</option><option>Embalagens</option><option>Energia</option>
+            <option>Material de escritório</option><option>Materiais elétricos</option><option>Mobiliário</option>
+            <option>Peças</option><option>Serviços</option><option>Tecnologia</option><option>Transporte</option>
+          </select>
+        </label>
+        <label>Valor do contrato (R$)<input id="valor" required inputmode="decimal" placeholder="0,00"></label>
+      </div>
+      <div class="acoes">
+        <button type="button" class="secundario" id="cancelar">Cancelar</button>
+        <button type="submit" class="primario" id="salvar">Salvar fornecedor</button>
+      </div>
     </form>
-    <div id="aviso" class="aviso" role="status"></div>
-  </section>
-
-  <section class="resumo">
-    <div><small>Clientes cadastrados</small><b id="qtd">0</b></div>
-    <div><small>Valor total</small><b id="total">R$ 0,00</b></div>
-    <div><small>Último cadastro</small><b id="ultimo">—</b></div>
-  </section>
-
-  <section class="cartao">
-    <div class="topo-lista">
-      <h2>Clientes salvos</h2>
-      <button id="limpar" class="secundario" type="button">Limpar lista</button>
-    </div>
-    <table>
-      <thead><tr><th>#</th><th>Nome</th><th>CPF</th><th class="num">Valor</th><th>Cadastrado em</th></tr></thead>
-      <tbody id="lista"></tbody>
-    </table>
   </section>
 </main>
+<div class="toast" id="toast">Fornecedor salvo</div>
 
 <script>
-  const CHAVE = "gestaopro.clientes";
-  const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-  const $ = (id) => document.getElementById(id);
+  const CHAVE = "gestao-pro-fornecedores";
+  const ler = () => { try { return JSON.parse(localStorage.getItem(CHAVE)) || []; } catch { return []; } };
+  const gravar = (lista) => localStorage.setItem(CHAVE, JSON.stringify(lista));
+  const numero = (texto) => Number(String(texto).replace(/\./g, "").replace(",", ".")) || 0;
+  const brl = (valor) => valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  function ler() {
-    try { return JSON.parse(localStorage.getItem(CHAVE)) || []; } catch { return []; }
-  }
-  function gravar(lista) { localStorage.setItem(CHAVE, JSON.stringify(lista)); }
-
-  // "1.250,50" ou "1250.50" -> 1250.5
-  function paraNumero(texto) {
-    const t = String(texto).trim().replace(/\s|R\$/g, "");
-    const n = t.includes(",") ? Number(t.replace(/\./g, "").replace(",", ".")) : Number(t);
-    return Number.isFinite(n) ? n : NaN;
+  function mostrar(tela) {
+    for (const nome of ["inicio", "lista", "form"]) document.getElementById("tela-" + nome).hidden = nome !== tela;
+    document.querySelectorAll("nav a").forEach((link) => link.classList.toggle("ativo", link.dataset.tela === (tela === "form" ? "lista" : tela)));
+    if (tela === "form") { document.getElementById("form").reset(); document.getElementById("razao").focus(); }
   }
 
-  function mascaraCpf(v) {
-    const d = v.replace(/\D/g, "").slice(0, 11);
-    return d.replace(/^(\d{3})(\d)/, "$1.$2")
-            .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-            .replace(/\.(\d{3})(\d)/, ".$1-$2");
-  }
-
-  function mostrar(destacar) {
+  function desenhar(destaque) {
     const lista = ler();
-    const corpo = $("lista");
-    corpo.innerHTML = "";
-    if (!lista.length) {
-      corpo.innerHTML = '<tr><td class="vazio" colspan="5">Nenhum cliente cadastrado ainda.</td></tr>';
-    }
-    lista.forEach((c, i) => {
-      const tr = document.createElement("tr");
-      if (destacar && i === lista.length - 1) tr.className = "novo";
-      [i + 1, c.nome, c.cpf, moeda.format(c.valor), new Date(c.em).toLocaleString("pt-BR")]
-        .forEach((v, j) => {
-          const td = document.createElement("td");
-          if (j === 3) td.className = "num";
-          td.textContent = v;
-          tr.appendChild(td);
-        });
-      corpo.appendChild(tr);
+    const corpo = document.getElementById("lista");
+    corpo.innerHTML = lista.length ? "" : '<tr><td colspan="5" class="vazio">Nenhum fornecedor cadastrado.</td></tr>';
+    lista.forEach((item, indice) => {
+      const linha = document.createElement("tr");
+      if (indice === destaque) linha.className = "novo";
+      for (const [texto, classe] of [[item.razao], [item.cnpj], [item.email], [`<span class="etiqueta">${item.categoria}</span>`], [brl(item.valor), "num"]]) {
+        const celula = document.createElement("td");
+        celula.innerHTML = texto;
+        if (classe) celula.className = classe;
+        linha.appendChild(celula);
+      }
+      corpo.appendChild(linha);
     });
-    $("qtd").textContent = lista.length;
-    $("total").textContent = moeda.format(lista.reduce((s, c) => s + c.valor, 0));
-    $("ultimo").textContent = lista.length ? lista[lista.length - 1].nome.split(" ")[0] : "—";
+    document.getElementById("qtd").textContent = lista.length;
+    document.getElementById("total").textContent = brl(lista.reduce((soma, item) => soma + item.valor, 0));
+    document.getElementById("ultimo").textContent = lista.at(-1)?.razao ?? "—";
   }
 
-  function avisar(texto, tipo) {
-    const a = $("aviso");
-    a.textContent = texto;
-    a.className = "aviso " + tipo;
-  }
-
-  $("cpf").addEventListener("input", (e) => { e.target.value = mascaraCpf(e.target.value); });
-
-  $("form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const nome = $("nome").value.trim();
-    const cpf = mascaraCpf($("cpf").value);
-    const valor = paraNumero($("valor").value);
-    if (!nome) return avisar("Informe o nome.", "erro");
-    if (cpf.replace(/\D/g, "").length !== 11) return avisar("CPF incompleto.", "erro");
-    if (!(valor >= 0)) return avisar("Valor inválido.", "erro");
+  document.getElementById("cnpj").addEventListener("input", (evento) => {
+    const d = evento.target.value.replace(/\D/g, "").slice(0, 14);
+    evento.target.value = d.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
+  });
+  document.querySelectorAll("nav a[data-tela]").forEach((link) => link.addEventListener("click", () => mostrar(link.dataset.tela)));
+  document.getElementById("novo-fornecedor").addEventListener("click", () => mostrar("form"));
+  document.getElementById("cancelar").addEventListener("click", () => mostrar("lista"));
+  document.getElementById("limpar").addEventListener("click", () => { gravar([]); desenhar(); });
+  document.getElementById("form").addEventListener("submit", (evento) => {
+    evento.preventDefault();
     const lista = ler();
-    lista.push({ nome, cpf, valor, em: new Date().toISOString() });
+    lista.push({
+      razao: document.getElementById("razao").value.trim(),
+      cnpj: document.getElementById("cnpj").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      categoria: document.getElementById("categoria").value,
+      valor: numero(document.getElementById("valor").value),
+    });
     gravar(lista);
-    mostrar(true);
-    avisar(`Cliente "${nome}" salvo.`, "ok");
-    e.target.reset();
-    $("nome").focus();
+    mostrar("lista");
+    desenhar(lista.length - 1);
+    const aviso = document.getElementById("toast");
+    aviso.classList.add("mostrar");
+    clearTimeout(aviso.espera);
+    aviso.espera = setTimeout(() => aviso.classList.remove("mostrar"), 1200);
   });
-
-  $("limpar").addEventListener("click", () => {
-    gravar([]);
-    mostrar(false);
-    avisar("Lista limpa.", "ok");
-  });
-
-  mostrar(false);
+  desenhar();
 </script>
 </body>
 </html>

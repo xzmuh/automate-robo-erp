@@ -1,9 +1,10 @@
-"""Robô de exemplo do Next Automate.
+"""Robô de exemplo do Next Automate: cadastro de fornecedores.
 
-1. Abre o erp.html no Edge instalado (Playwright, perfil fixo numa pasta).
-2. Cadastra as linhas do dados.txt ("Nome;CPF;Valor"), com uma pausa curta entre elas.
-3. Abre a Calculadora do Windows (pywinauto), digita a soma de todos os valores
-   e confere o resultado com a conta feita aqui.
+1. Mostra o dados.txt no Bloco de Notas e conta 3 segundos.
+2. Abre o erp.html no Edge (Playwright, perfil fixo), vai em Fornecedores e,
+   para cada linha, clica em Novo fornecedor, preenche e salva.
+3. Com o ERP ainda aberto, abre a Calculadora por cima, soma os valores
+   e confere com a conta feita aqui.
 """
 
 import os
@@ -32,14 +33,17 @@ def log(msg):
 
 def ler_dados():
     linhas = []
-    for n, bruta in enumerate(DADOS.read_text(encoding="utf-8").splitlines(), 1):
-        if not bruta.strip():
+    for n, bruta in enumerate(DADOS.read_text(encoding="utf-8-sig").splitlines(), 1):
+        if n == 1 or not bruta.strip():
             continue
         partes = [p.strip() for p in bruta.split(";")]
-        if len(partes) != 3:
-            raise SystemExit(f"dados.txt linha {n}: esperado Nome;CPF;Valor, veio {bruta!r}")
-        nome, cpf, valor = partes
-        linhas.append((nome, cpf, valor, Decimal(valor.replace(".", "").replace(",", "."))))
+        if len(partes) != 5:
+            raise SystemExit(f"dados.txt linha {n}: esperado Razão social;CNPJ;E-mail;Categoria;Valor, veio {bruta!r}")
+        razao, cnpj, email, categoria, valor = partes
+        linhas.append({
+            "razao": razao, "cnpj": cnpj, "email": email, "categoria": categoria, "valor": valor,
+            "numero": Decimal(valor.replace(".", "").replace(",", ".")),
+        })
     return linhas
 
 
@@ -48,7 +52,28 @@ def brl(v):
     return "R$ " + s.replace(",", "_").replace(".", ",").replace("_", ".")
 
 
-def cadastrar(linhas):
+def mostrar_no_bloco_de_notas():
+    log("Abrindo os dados no Bloco de Notas")
+    subprocess.Popen(["notepad.exe", str(DADOS)])
+    janela = None
+    try:
+        janela = Desktop(backend="uia").window(title_re=r".*dados.*", control_type="Window")
+        janela.wait("visible", timeout=15)
+        janela.set_focus()
+    except Exception as erro:
+        log(f"Bloco de Notas aberto, sem pegar o foco ({erro})")
+        janela = None
+    for falta in (3, 2, 1):
+        log(f"Começando em {falta}...")
+        time.sleep(1)
+    if janela is not None:
+        try:
+            janela.close()
+        except Exception:
+            pass
+
+
+def cadastrar_e_somar(linhas):
     PERFIL.mkdir(parents=True, exist_ok=True)
     log(f"Abrindo o Edge (perfil em {PERFIL})")
     with sync_playwright() as p:
@@ -59,30 +84,39 @@ def cadastrar(linhas):
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
             page.goto(ERP.as_uri())
             log(f"ERP aberto: {page.title()}")
+            time.sleep(PAUSA)
+            page.click("#menu-fornecedores")
+            log("Menu Cadastros > Fornecedores")
             page.click("#limpar")
-            log("Lista de cadastros anterior limpa")
+            log("Lista de fornecedores anterior limpa")
+            time.sleep(PAUSA)
 
-            for i, (nome, cpf, valor, _) in enumerate(linhas, 1):
-                page.fill("#nome", nome)
-                page.fill("#cpf", cpf)
-                page.fill("#valor", valor)
+            for i, item in enumerate(linhas, 1):
+                page.click("#novo-fornecedor")
+                page.fill("#razao", item["razao"])
+                page.fill("#cnpj", item["cnpj"])
+                page.fill("#email", item["email"])
+                page.select_option("#categoria", label=item["categoria"])
+                page.fill("#valor", item["valor"])
+                time.sleep(PAUSA / 2)
                 page.click("#salvar")
                 page.wait_for_function("n => document.querySelectorAll('#lista tr').length === n", arg=i)
-                log(f"[{i:02d}/{len(linhas)}] cadastrado: {nome} | {cpf} | R$ {valor}")
+                log(f"[{i:02d}/{len(linhas)}] fornecedor salvo: {item['razao']} | {item['cnpj']} | R$ {item['valor']}")
                 time.sleep(PAUSA)
 
             qtd = page.inner_text("#qtd")
             total_tela = page.inner_text("#total").replace("\xa0", " ")
-            log(f"ERP mostra {qtd} clientes salvos, total {total_tela}")
+            log(f"ERP mostra {qtd} fornecedores, total {total_tela}")
             if int(qtd) != len(linhas):
-                raise SystemExit(f"esperava {len(linhas)} cadastros na lista, o ERP mostra {qtd}")
+                raise SystemExit(f"esperava {len(linhas)} fornecedores na lista, o ERP mostra {qtd}")
 
             artefatos = os.environ.get("ARTIFACTS_DIR")
             if artefatos:
                 destino = Path(artefatos) / "erp.png"
                 page.screenshot(path=str(destino), full_page=True)
                 log(f"Foto do ERP salva em {destino.name}")
-            time.sleep(2)
+
+            return somar_na_calculadora(linhas)
         finally:
             ctx.close()
             log("Edge fechado")
@@ -109,7 +143,7 @@ def ler_visor(janela, portugues):
 
 
 def somar_na_calculadora(linhas):
-    log("Abrindo a Calculadora do Windows")
+    log("Abrindo a Calculadora por cima do ERP")
     subprocess.Popen(["calc.exe"])
     janela = Desktop(backend="uia").window(title_re=r"^(Calculadora|Calculator)$", control_type="Window")
     janela.wait("visible", timeout=20)
@@ -119,18 +153,18 @@ def somar_na_calculadora(linhas):
     janela.type_keys("{ESC}", pause=0.05)  # zera
     log("Calculadora pronta (modo Padrão)")
 
-    for i, (_, _, valor, _) in enumerate(linhas, 1):
-        janela.type_keys(teclas_do_valor(valor), pause=0.04)
+    for i, item in enumerate(linhas, 1):
+        janela.type_keys(teclas_do_valor(item["valor"]), pause=0.04)
         if i < len(linhas):
             janela.type_keys("{+}", pause=0.04)
-        log(f"[{i:02d}/{len(linhas)}] digitado: {valor}" + (" +" if i < len(linhas) else ""))
+        log(f"[{i:02d}/{len(linhas)}] digitado: {item['valor']}" + (" +" if i < len(linhas) else ""))
         time.sleep(0.15)
     janela.type_keys("{ENTER}")
     time.sleep(0.5)
 
     texto, resultado = ler_visor(janela, portugues)
     log(f"Visor da Calculadora: {texto}")
-    time.sleep(3)
+    time.sleep(4)
     janela.close()
     log("Calculadora fechada")
     return resultado
@@ -138,11 +172,11 @@ def somar_na_calculadora(linhas):
 
 def main():
     linhas = ler_dados()
-    esperado = sum(v for *_, v in linhas)
-    log(f"{len(linhas)} cadastros lidos do dados.txt")
+    esperado = sum(item["numero"] for item in linhas)
+    log(f"{len(linhas)} fornecedores lidos do dados.txt")
 
-    cadastrar(linhas)
-    resultado = somar_na_calculadora(linhas)
+    mostrar_no_bloco_de_notas()
+    resultado = cadastrar_e_somar(linhas)
 
     log(f"Total pela Calculadora: {brl(resultado)}")
     log(f"Total conferido pelo robô: {brl(esperado)}")
