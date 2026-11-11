@@ -1,0 +1,7 @@
+name: robo-erp
+requires:
+  - python>=3.11
+setup: python -m pip install -r requirements.txt
+run: python robo.py
+interactive: true
+timeout: 10m

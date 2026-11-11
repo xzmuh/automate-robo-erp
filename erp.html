@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestão Pro · Cadastro de clientes</title>
+<style>
+  :root {
+    --fundo: #f3f5f9;
+    --painel: #ffffff;
+    --borda: #e3e7ef;
+    --texto: #1d2433;
+    --suave: #6b7489;
+    --primaria: #2457d6;
+    --primaria-escura: #1b44ab;
+    --barra: #142039;
+    --ok: #1f9d55;
+    --perigo: #d64545;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
+    color: var(--texto);
+    background: var(--fundo);
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+  aside {
+    background: var(--barra);
+    color: #c9d3ea;
+    padding: 20px 14px;
+  }
+  .marca {
+    display: flex; align-items: center; gap: 10px;
+    color: #fff; font-weight: 700; font-size: 16px;
+    margin: 0 6px 28px;
+  }
+  .marca span {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, #4d7cff, #2457d6);
+    display: grid; place-items: center; font-size: 15px;
+  }
+  nav a {
+    display: block; padding: 9px 12px; margin-bottom: 2px;
+    color: inherit; text-decoration: none; border-radius: 7px;
+  }
+  nav a.ativo { background: rgba(255,255,255,.1); color: #fff; }
+  nav small {
+    display: block; margin: 18px 12px 6px;
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #7e8aa8;
+  }
+  main { padding: 26px 32px; min-width: 0; width: 100%; max-width: 1280px; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 20px;
+  }
+  .trilha { color: var(--suave); font-size: 12px; }
+  h1 { margin: 4px 0 0; font-size: 22px; }
+  .usuario { color: var(--suave); font-size: 13px; }
+  .cartao {
+    background: var(--painel); border: 1px solid var(--borda);
+    border-radius: 12px; padding: 20px 22px; margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(20,32,57,.04);
+  }
+  .cartao h2 { margin: 0 0 16px; font-size: 15px; }
+  form {
+    display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 14px; align-items: end;
+  }
+  label { display: grid; gap: 5px; font-size: 12px; font-weight: 600; color: var(--suave); }
+  input {
+    font: inherit; color: var(--texto);
+    padding: 9px 11px; border: 1px solid var(--borda); border-radius: 8px;
+    background: #fbfcfe; outline: none;
+  }
+  input:focus { border-color: var(--primaria); box-shadow: 0 0 0 3px rgba(36,87,214,.15); background: #fff; }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    padding: 9px 18px; border-radius: 8px; border: 1px solid transparent;
+  }
+  .primario { background: var(--primaria); color: #fff; }
+  .primario:hover { background: var(--primaria-escura); }
+  .secundario { background: #fff; border-color: var(--borda); color: var(--texto); }
+  .aviso { min-height: 20px; margin-top: 12px; font-size: 13px; }
+  .aviso.ok { color: var(--ok); }
+  .aviso.erro { color: var(--perigo); }
+  .resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .resumo div {
+    background: var(--painel); border: 1px solid var(--borda); border-radius: 12px; padding: 14px 18px;
+  }
+  .resumo b { display: block; font-size: 22px; margin-top: 2px; }
+  .resumo small { color: var(--suave); }
+  .topo-lista { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .topo-lista h2 { margin: 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--borda); }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); background: #f8f9fc; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: #f8faff; }
+  .vazio { text-align: center; color: var(--suave); padding: 28px; }
+  .novo { animation: brilho 1.2s ease-out; }
+  @keyframes brilho { from { background: #e4ecff; } to { background: transparent; } }
+</style>
+</head>
+<body>
+<aside>
+  <div class="marca"><span>G</span>Gestão Pro</div>
+  <nav>
+    <small>Cadastros</small>
+    <a class="ativo" href="#">Clientes</a>
+    <a href="#">Fornecedores</a>
+    <a href="#">Produtos</a>
+    <small>Financeiro</small>
+    <a href="#">Contas a receber</a>
+    <a href="#">Contas a pagar</a>
+  </nav>
+</aside>
+
+<main>
+  <header>
+    <div>
+      <div class="trilha">Cadastros › Clientes</div>
+      <h1>Cadastro de clientes</h1>
+    </div>
+    <div class="usuario">Operador: robô</div>
+  </header>
+
+  <section class="cartao">
+    <h2>Novo cliente</h2>
+    <form id="form" autocomplete="off">
+      <label>Nome completo
+        <input id="nome" name="nome" required placeholder="Ex.: Maria da Silva">
+      </label>
+      <label>CPF
+        <input id="cpf" name="cpf" required placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
+      </label>
+      <label>Valor (R$)
+        <input id="valor" name="valor" required placeholder="0,00" inputmode="decimal">
+      </label>
+      <button id="salvar" class="primario" type="submit">Salvar</button>
+    </form>
+    <div id="aviso" class="aviso" role="status"></div>
+  </section>
+
+  <section class="resumo">
+    <div><small>Clientes cadastrados</small><b id="qtd">0</b></div>
+    <div><small>Valor total</small><b id="total">R$ 0,00</b></div>
+    <div><small>Último cadastro</small><b id="ultimo">—</b></div>
+  </section>
+
+  <section class="cartao">
+    <div class="topo-lista">
+      <h2>Clientes salvos</h2>
+      <button id="limpar" class="secundario" type="button">Limpar lista</button>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>Nome</th><th>CPF</th><th class="num">Valor</th><th>Cadastrado em</th></tr></thead>
+      <tbody id="lista"></tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+  const CHAVE = "gestaopro.clientes";
+  const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+  const $ = (id) => document.getElementById(id);
+
+  function ler() {
+    try { return JSON.parse(localStorage.getItem(CHAVE)) || []; } catch { return []; }
+  }
+  function gravar(lista) { localStorage.setItem(CHAVE, JSON.stringify(lista)); }
+
+  // "1.250,50" ou "1250.50" -> 1250.5
+  function paraNumero(texto) {
+    const t = String(texto).trim().replace(/\s|R\$/g, "");
+    const n = t.includes(",") ? Number(t.replace(/\./g, "").replace(",", ".")) : Number(t);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function mascaraCpf(v) {
+    const d = v.replace(/\D/g, "").slice(0, 11);
+    return d.replace(/^(\d{3})(\d)/, "$1.$2")
+            .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+            .replace(/\.(\d{3})(\d)/, ".$1-$2");
+  }
+
+  function mostrar(destacar) {
+    const lista = ler();
+    const corpo = $("lista");
+    corpo.innerHTML = "";
+    if (!lista.length) {
+      corpo.innerHTML = '<tr><td class="vazio" colspan="5">Nenhum cliente cadastrado ainda.</td></tr>';
+    }
+    lista.forEach((c, i) => {
+      const tr = document.createElement("tr");
+      if (destacar && i === lista.length - 1) tr.className = "novo";
+      [i + 1, c.nome, c.cpf, moeda.format(c.valor), new Date(c.em).toLocaleString("pt-BR")]
+        .forEach((v, j) => {
+          const td = document.createElement("td");
+          if (j === 3) td.className = "num";
+          td.textContent = v;
+          tr.appendChild(td);
+        });
+      corpo.appendChild(tr);
+    });
+    $("qtd").textContent = lista.length;
+    $("total").textContent = moeda.format(lista.reduce((s, c) => s + c.valor, 0));
+    $("ultimo").textContent = lista.length ? lista[lista.length - 1].nome.split(" ")[0] : "—";
+  }
+
+  function avisar(texto, tipo) {
+    const a = $("aviso");
+    a.textContent = texto;
+    a.className = "aviso " + tipo;
+  }
+
+  $("cpf").addEventListener("input", (e) => { e.target.value = mascaraCpf(e.target.value); });
+
+  $("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nome = $("nome").value.trim();
+    const cpf = mascaraCpf($("cpf").value);
+    const valor = paraNumero($("valor").value);
+    if (!nome) return avisar("Informe o nome.", "erro");
+    if (cpf.replace(/\D/g, "").length !== 11) return avisar("CPF incompleto.", "erro");
+    if (!(valor >= 0)) return avisar("Valor inválido.", "erro");
+    const lista = ler();
+    lista.push({ nome, cpf, valor, em: new Date().toISOString() });
+    gravar(lista);
+    mostrar(true);
+    avisar(`Cliente "${nome}" salvo.`, "ok");
+    e.target.reset();
+    $("nome").focus();
+  });
+
+  $("limpar").addEventListener("click", () => {
+    gravar([]);
+    mostrar(false);
+    avisar("Lista limpa.", "ok");
+  });
+
+  mostrar(false);
+</script>
+</body>
+</html>
