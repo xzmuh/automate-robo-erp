@@ -1,7 +1,7 @@
 # Robô ERP: rotina de contas a pagar (exemplo do Next Automate)
 
 1. Mostra o `dados.txt` no Bloco de Notas e conta 3 segundos.
-2. Abre o `erp.html` no Edge e entra com usuário `robo` e senha `next123`.
+2. Abre o ERP **Gestão Pro** (um site separado: https://xzmuh.github.io/gestao-pro/, parâmetro `sistema`) no Edge e entra com usuário e senha. O robô acha tudo pelo que aparece na tela: menu, nomes dos botões e rótulos dos campos.
 3. **Fornecedores:** cadastra os 15 (Novo fornecedor > preenche > Salvar).
 4. **Contas a pagar:** lança uma conta por fornecedor, com o vencimento do `dados.txt`.
 5. **Pagamentos:** filtra as que vencem em até 7 dias e dá baixa em cada uma.

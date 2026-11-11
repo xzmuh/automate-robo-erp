@@ -1,7 +1,9 @@
 """Robô de exemplo do Next Automate: rotina de contas a pagar num ERP.
 
 1. Mostra o dados.txt no Bloco de Notas e conta 3 segundos.
-2. Abre o erp.html no Edge (Playwright, perfil fixo) e entra com usuário e senha.
+2. Abre o ERP (um site, o parâmetro "sistema") no Edge e entra com usuário e senha.
+   O robô acha tudo pelo que aparece na tela: textos do menu, nomes dos botões e
+   rótulos dos campos, como uma pessoa faria.
 3. Fornecedores: cadastra cada linha (Novo fornecedor > preenche > Salvar).
 4. Contas a pagar: lança uma conta por fornecedor, com o vencimento do dados.txt.
 5. Dá baixa nas contas que vencem em até 7 dias.
@@ -23,7 +25,9 @@ from playwright.sync_api import sync_playwright
 from pywinauto import Desktop
 
 PASTA = Path(__file__).resolve().parent
-ERP = PASTA / "erp.html"
+SISTEMA = os.environ.get("sistema") or "https://xzmuh.github.io/gestao-pro/"
+USUARIO = os.environ.get("usuario") or "robo"
+SENHA = os.environ.get("senha") or "next123"
 DADOS = PASTA / "dados.txt"
 # Perfil fixo do Edge: fica fora da pasta do robô, para sobreviver às versões novas.
 PERFIL = Path(os.environ.get("PERFIL_EDGE") or
@@ -91,32 +95,59 @@ def abrir_no_bloco_de_notas(arquivo, segundos, contagem=False):
             pass
 
 
+def tela(page):
+    return page.locator("section:visible").first
+
+
+def campo(page, rotulo):
+    return tela(page).get_by_label(rotulo)
+
+
+def botao(page, nome):
+    return page.get_by_role("button", name=nome, exact=True).locator("visible=true").first
+
+
+def menu(page, nome):
+    page.locator("nav").get_by_text(nome, exact=True).click()
+    log(f"Menu: {nome}")
+    time.sleep(PAUSA)
+
+
+def linhas_da_tabela(page):
+    return tela(page).locator("table tbody tr").filter(has_not=page.locator("td.vazio"))
+
+
+def valor_do_cartao(page, titulo):
+    return tela(page).get_by_text(titulo, exact=True).locator("xpath=following-sibling::b").inner_text().replace("\xa0", " ")
+
+
 def entrar(page):
     etapa("Login")
-    page.goto(ERP.as_uri())
-    page.fill("#usuario", "robo")
-    page.fill("#senha", "next123")
+    page.goto(SISTEMA)
+    log(f"Sistema: {SISTEMA}")
+    campo(page, "Usuário").fill(USUARIO)
+    campo(page, "Senha").fill(SENHA)
     time.sleep(PAUSA)
-    page.click("#entrar")
-    page.wait_for_selector("#app:not([hidden])")
-    log("Entrou no ERP como robo")
+    botao(page, "Entrar").click()
+    page.locator("nav").wait_for()
+    log(f"Entrou no ERP como {USUARIO}")
 
 
 def cadastrar_fornecedores(page, linhas):
     etapa("Fornecedores")
-    page.click("#menu-fornecedores")
-    page.click("#limpar")
+    menu(page, "Fornecedores")
+    botao(page, "Limpar tudo").click()
     log("Dados da execução anterior apagados")
     for i, item in enumerate(linhas, 1):
-        page.click("#novo-fornecedor")
-        page.fill("#razao", item["razao"])
-        page.fill("#cnpj", item["cnpj"])
-        page.fill("#email", item["email"])
-        page.select_option("#categoria", label=item["categoria"])
-        page.fill("#valor", item["valor"])
+        botao(page, "+ Novo fornecedor").click()
+        campo(page, "Razão social").fill(item["razao"])
+        campo(page, "CNPJ").fill(item["cnpj"])
+        campo(page, "E-mail").fill(item["email"])
+        campo(page, "Categoria").select_option(label=item["categoria"])
+        campo(page, "Valor do contrato (R$)").fill(item["valor"])
         time.sleep(PAUSA / 2)
-        page.click("#salvar")
-        page.wait_for_function("n => document.querySelectorAll('#lista tr').length === n", arg=i)
+        botao(page, "Salvar fornecedor").click()
+        linhas_da_tabela(page).nth(i - 1).wait_for()
         log(f"[{i:02d}/{len(linhas)}] fornecedor: {item['razao']} | {item['cnpj']}")
         time.sleep(PAUSA / 2)
     foto(page, "1-fornecedores")
@@ -124,17 +155,17 @@ def cadastrar_fornecedores(page, linhas):
 
 def lancar_contas(page, linhas):
     etapa("Contas a pagar")
-    page.click("#menu-contas")
+    menu(page, "Contas a pagar")
     for i, item in enumerate(linhas, 1):
         vencimento = date.today() + timedelta(days=item["dias"])
-        page.click("#nova-conta")
-        page.select_option("#conta-fornecedor", label=item["razao"])
-        page.fill("#conta-descricao", f"Contrato de {item['categoria'].lower()}")
-        page.fill("#conta-vencimento", vencimento.isoformat())
-        page.fill("#conta-valor", item["valor"])
+        botao(page, "+ Nova conta").click()
+        campo(page, "Fornecedor").select_option(label=item["razao"])
+        campo(page, "Descrição").fill(f"Contrato de {item['categoria'].lower()}")
+        campo(page, "Vencimento").fill(vencimento.isoformat())
+        campo(page, "Valor (R$)").fill(item["valor"])
         time.sleep(PAUSA / 2)
-        page.click("#salvar-conta")
-        page.wait_for_function("n => document.querySelectorAll('#lista-contas tr').length === n", arg=i)
+        botao(page, "Lançar conta").click()
+        linhas_da_tabela(page).nth(i - 1).wait_for()
         log(f"[{i:02d}/{len(linhas)}] conta: {item['razao']} | vence {vencimento:%d/%m} | R$ {item['valor']}")
         time.sleep(PAUSA / 2)
     foto(page, "2-contas-lancadas")
@@ -142,12 +173,12 @@ def lancar_contas(page, linhas):
 
 def dar_baixa(page):
     etapa(f"Pagamentos (vencendo em até {DIAS_PARA_PAGAR} dias)")
-    page.fill("#filtro-dias", str(DIAS_PARA_PAGAR))
-    page.click("#filtrar")
+    campo(page, "Vencendo em até (dias)").fill(str(DIAS_PARA_PAGAR))
+    botao(page, "Filtrar").click()
     time.sleep(PAUSA)
     pagas = 0
     while True:
-        botoes = page.locator("#lista-contas button.baixar:visible")
+        botoes = tela(page).get_by_role("button", name="Dar baixa", exact=True).locator("visible=true")
         if botoes.count() == 0:
             break
         fornecedor = botoes.first.locator("xpath=ancestor::tr/td[1]").inner_text()
@@ -155,7 +186,7 @@ def dar_baixa(page):
         pagas += 1
         log(f"Baixa: {fornecedor}")
         time.sleep(PAUSA)
-    page.click("#limpar-filtro")
+    botao(page, "Mostrar todas").click()
     log(f"{pagas} contas pagas")
     foto(page, "3-pagamentos")
     return pagas
@@ -163,10 +194,9 @@ def dar_baixa(page):
 
 def exportar_relatorio(page):
     etapa("Relatório")
-    page.click("#menu-relatorio")
-    time.sleep(PAUSA)
+    menu(page, "Relatórios")
     with page.expect_download() as baixando:
-        page.click("#exportar")
+        botao(page, "Exportar CSV").click()
     RELATORIO.parent.mkdir(parents=True, exist_ok=True)
     baixando.value.save_as(str(RELATORIO))
     log(f"Relatório salvo em {RELATORIO}")
@@ -248,8 +278,8 @@ def main():
             lancar_contas(page, linhas)
             pagas = dar_baixa(page)
             valores = exportar_relatorio(page)
-            page.click("#menu-contas")
-            total_erp = page.inner_text("#total-aberto").replace("\xa0", " ")
+            menu(page, "Contas a pagar")
+            total_erp = valor_do_cartao(page, "Total em aberto")
             resultado = somar_na_calculadora(valores)
             time.sleep(1)
         finally:

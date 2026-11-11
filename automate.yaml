@@ -4,4 +4,14 @@ requires:
 setup: python -m pip install -r requirements.txt
 run: python robo.py
 interactive: true
-timeout: 10m
+timeout: 15m
+params:
+  - name: sistema
+    description: Endereço do ERP
+    default: https://xzmuh.github.io/gestao-pro/
+  - name: usuario
+    description: Usuário do ERP
+    default: robo
+  - name: senha
+    description: Senha do ERP
+    default: next123
