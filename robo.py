@@ -32,7 +32,20 @@ DADOS = PASTA / "dados.txt"
 # Perfil fixo do Edge: fica fora da pasta do robô, para sobreviver às versões novas.
 PERFIL = Path(os.environ.get("PERFIL_EDGE") or
               Path(os.environ.get("LOCALAPPDATA", PASTA)) / "NextAutomate" / "robo-erp" / "perfil-edge")
-RELATORIO = Path(os.environ.get("USERPROFILE", PASTA)) / "Documents" / "contas-em-aberto.csv"
+def pasta_documentos():
+    # Pergunta ao Windows onde fica "Documentos": ela pode estar no OneDrive
+    # (C:\Users\x\OneDrive\Documentos) e não em C:\Users\x\Documents.
+    try:
+        import ctypes
+        buf = ctypes.create_unicode_buffer(260)
+        if ctypes.windll.shell32.SHGetFolderPathW(None, 5, None, 0, buf) == 0 and buf.value:  # 5 = CSIDL_PERSONAL
+            return Path(buf.value)
+    except Exception:
+        pass
+    return Path(os.environ.get("USERPROFILE", PASTA)) / "Documents"
+
+
+RELATORIO = pasta_documentos() / "contas-em-aberto.csv"
 PAUSA = float(os.environ.get("PAUSA", "0.4"))
 DIAS_PARA_PAGAR = 7
 
