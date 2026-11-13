@@ -9,7 +9,7 @@
 5. Dá baixa nas contas que vencem em até 7 dias.
 5b. Notas fiscais: emite a nota de cada conta paga. Nota rejeitada vira um
     ALERTA no painel do cliente, com o motivo e o que fazer.
-6. Relatórios: exporta as contas em aberto e abre o arquivo no Bloco de Notas.
+6. Relatórios: lê na tela as contas em aberto, sem baixar arquivo.
 7. Abre a Calculadora por cima do ERP, soma o que ficou em aberto e confere
    com o total do ERP e com a conta feita aqui.
 """
@@ -37,20 +37,6 @@ DADOS = PASTA / "dados.txt"
 # Perfil fixo do Edge: fica fora da pasta do robô, para sobreviver às versões novas.
 PERFIL = Path(os.environ.get("PERFIL_EDGE") or
               Path(os.environ.get("LOCALAPPDATA", PASTA)) / "NextAutomate" / "robo-erp" / "perfil-edge")
-def pasta_documentos():
-    # Pergunta ao Windows onde fica "Documentos": ela pode estar no OneDrive
-    # (C:\Users\x\OneDrive\Documentos) e não em C:\Users\x\Documents.
-    try:
-        import ctypes
-        buf = ctypes.create_unicode_buffer(260)
-        if ctypes.windll.shell32.SHGetFolderPathW(None, 5, None, 0, buf) == 0 and buf.value:  # 5 = CSIDL_PERSONAL
-            return Path(buf.value)
-    except Exception:
-        pass
-    return Path(os.environ.get("USERPROFILE", PASTA)) / "Documents"
-
-
-RELATORIO = pasta_documentos() / "contas-em-aberto.csv"
 PAUSA = float(os.environ.get("PAUSA", "0.4"))
 DIAS_PARA_PAGAR = 7
 
@@ -260,29 +246,18 @@ def emitir_notas(page):
     return autorizadas, rejeitadas
 
 
-def exportar_relatorio(page):
+def ler_relatorio(page):
     etapa("Relatório")
     menu(page, "Relatórios")
-    with page.expect_download() as baixando:
-        botao(page, "Exportar CSV").click()
-    RELATORIO.parent.mkdir(parents=True, exist_ok=True)
-    baixando.value.save_as(str(RELATORIO))
-    baixando.value.delete()
-    log(f"Relatório salvo em {RELATORIO}")
+    texto = tela(page).locator("pre").inner_text()
     foto(page, "4-relatorio")
-    abrir_no_bloco_de_notas(RELATORIO, 4)
-    valores = []
-    for linha in RELATORIO.read_text(encoding="utf-8-sig").splitlines()[1:]:
-        if linha.strip():
-            valores.append(linha.split(";")[-1])
+    valores = [linha.split(";")[-1] for linha in texto.splitlines()[1:] if linha.strip()]
     log(f"{len(valores)} contas em aberto no relatório")
     return valores
 
 
-def teclas_do_valor(valor):
-    # {VK_DECIMAL} é a vírgula/ponto do teclado numérico: a Calculadora usa o
-    # separador decimal do Windows, seja ele qual for.
-    return "".join("{VK_DECIMAL}" if c in ",." else c for c in valor.replace(".", "") if c in "0123456789,")
+BOTOES_CALCULADORA = {str(n): f"num{n}Button" for n in range(10)} | {
+    ",": "decimalSeparatorButton", "+": "plusButton", "=": "equalButton", "C": "clearButton"}
 
 
 def ler_visor(janela, portugues):
@@ -307,33 +282,31 @@ def somar_na_calculadora(valores):
         raise SystemExit("a Calculadora não abriu")
     janela = Desktop(backend="uia").window(handle=hwnd)
     portugues = janela.window_text() == "Calculadora"
-    janela.child_window(auto_id="CalculatorResults", control_type="Text").wait("visible", timeout=20)
-    time.sleep(0.5)
-    janela.set_focus()
-    janela.type_keys("%1", pause=0.05)   # Alt+1: modo Padrão
-    janela.type_keys("{ESC}", pause=0.05)  # zera
-    log("Calculadora aberta por cima do ERP")
+    janela.child_window(auto_id="plusButton", control_type="Button").wait("enabled", timeout=20)
+    trazer_para_frente(hwnd)
+    botoes = {tecla: janela.child_window(auto_id=auto_id, control_type="Button").wrapper_object()
+              for tecla, auto_id in BOTOES_CALCULADORA.items()}
 
+    def apertar(teclas):
+        for tecla in teclas:
+            botoes[tecla].invoke()
+            time.sleep(0.05)
+
+    apertar("C")
+    log("Calculadora aberta por cima do ERP")
     for i, valor in enumerate(valores, 1):
-        numero = Decimal(valor.replace(".", "").replace(",", "."))
-        for tentativa in range(3):
-            janela.type_keys(teclas_do_valor(valor), pause=0.04)
-            time.sleep(0.2)
-            if ler_visor(janela, portugues)[1] == numero:
-                break
-            log(f"AVISO: a Calculadora não recebeu {valor} direito, digitando de novo")
-            janela.type_keys("{DEL}", pause=0.05)
+        apertar("".join("," if c in ",." else c for c in valor.replace(".", "") if c in "0123456789,"))
         if i < len(valores):
-            janela.type_keys("{+}", pause=0.04)
+            apertar("+")
         log(f"[{i:02d}/{len(valores)}] {valor}" + (" +" if i < len(valores) else ""))
         time.sleep(0.15)
-    janela.type_keys("{ENTER}")
+    apertar("=")
     time.sleep(0.5)
 
     texto, resultado = ler_visor(janela, portugues)
     log(f"Visor: {texto}")
     time.sleep(4)
-    janela.close()
+    win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
     return resultado
 
 
@@ -349,8 +322,7 @@ def main():
     PERFIL.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
         ctx = p.chromium.launch_persistent_context(
-            str(PERFIL), channel="msedge", headless=False, no_viewport=True, accept_downloads=True,
-            downloads_path=str(PERFIL.parent / "downloads"),
+            str(PERFIL), channel="msedge", headless=False, no_viewport=True,
             args=["--start-maximized"])
         try:
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
@@ -359,7 +331,7 @@ def main():
             lancar_contas(page, linhas)
             pagas = dar_baixa(page)
             notas, rejeitadas = emitir_notas(page)
-            valores = exportar_relatorio(page)
+            valores = ler_relatorio(page)
             menu(page, "Contas a pagar")
             total_erp = valor_do_cartao(page, "Total em aberto")
             resultado = somar_na_calculadora(valores)
