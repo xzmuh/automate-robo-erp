@@ -244,6 +244,7 @@ def exportar_relatorio(page):
         botao(page, "Exportar CSV").click()
     RELATORIO.parent.mkdir(parents=True, exist_ok=True)
     baixando.value.save_as(str(RELATORIO))
+    baixando.value.delete()
     log(f"Relatório salvo em {RELATORIO}")
     foto(page, "4-relatorio")
     abrir_no_bloco_de_notas(RELATORIO, 4)
@@ -315,6 +316,7 @@ def main():
     with sync_playwright() as p:
         ctx = p.chromium.launch_persistent_context(
             str(PERFIL), channel="msedge", headless=False, no_viewport=True, accept_downloads=True,
+            downloads_path=str(PERFIL.parent / "downloads"),
             args=["--start-maximized"])
         try:
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
