@@ -307,13 +307,22 @@ def somar_na_calculadora(valores):
         raise SystemExit("a Calculadora não abriu")
     janela = Desktop(backend="uia").window(handle=hwnd)
     portugues = janela.window_text() == "Calculadora"
+    janela.child_window(auto_id="CalculatorResults", control_type="Text").wait("visible", timeout=20)
+    time.sleep(0.5)
     janela.set_focus()
     janela.type_keys("%1", pause=0.05)   # Alt+1: modo Padrão
     janela.type_keys("{ESC}", pause=0.05)  # zera
     log("Calculadora aberta por cima do ERP")
 
     for i, valor in enumerate(valores, 1):
-        janela.type_keys(teclas_do_valor(valor), pause=0.04)
+        numero = Decimal(valor.replace(".", "").replace(",", "."))
+        for tentativa in range(3):
+            janela.type_keys(teclas_do_valor(valor), pause=0.04)
+            time.sleep(0.2)
+            if ler_visor(janela, portugues)[1] == numero:
+                break
+            log(f"AVISO: a Calculadora não recebeu {valor} direito, digitando de novo")
+            janela.type_keys("{DEL}", pause=0.05)
         if i < len(valores):
             janela.type_keys("{+}", pause=0.04)
         log(f"[{i:02d}/{len(valores)}] {valor}" + (" +" if i < len(valores) else ""))
