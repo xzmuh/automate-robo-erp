@@ -24,6 +24,9 @@ from decimal import Decimal
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+import win32api
+import win32con
+import win32gui
 from pywinauto import Desktop
 
 PASTA = Path(__file__).resolve().parent
@@ -97,25 +100,45 @@ def foto(page, nome):
         log(f"Foto: {nome}.png")
 
 
+def achar_janela(classe, titulo, segundos=5):
+    fim = time.time() + segundos
+    while time.time() < fim:
+        achadas = []
+
+        def ver(hwnd, _):
+            if win32gui.IsWindowVisible(hwnd) and win32gui.GetClassName(hwnd) == classe and re.search(titulo, win32gui.GetWindowText(hwnd)):
+                achadas.append(hwnd)
+
+        win32gui.EnumWindows(ver, None)
+        if achadas:
+            return achadas[0]
+        time.sleep(0.1)
+    return None
+
+
+def trazer_para_frente(hwnd):
+    try:
+        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+        win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
+        win32gui.SetForegroundWindow(hwnd)
+        win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+    except Exception:
+        pass
+
+
 def abrir_no_bloco_de_notas(arquivo, segundos, contagem=False):
     subprocess.Popen(["notepad.exe", str(arquivo)])
-    janela = None
-    try:
-        janela = Desktop(backend="uia").window(title_re=rf".*{re.escape(arquivo.stem)}.*", control_type="Window")
-        janela.wait("visible", timeout=15)
-        janela.set_focus()
-    except Exception as erro:
-        log(f"Bloco de Notas aberto, sem pegar o foco ({erro})")
-        janela = None
+    janela = achar_janela("Notepad", re.escape(arquivo.stem))
+    if janela:
+        trazer_para_frente(janela)
+    else:
+        log("Bloco de Notas aberto, sem pegar o foco")
     for falta in range(segundos, 0, -1):
         if contagem:
             log(f"Começando em {falta}...")
         time.sleep(1)
-    if janela is not None:
-        try:
-            janela.close()
-        except Exception:
-            pass
+    if janela:
+        win32gui.PostMessage(janela, win32con.WM_CLOSE, 0, 0)
 
 
 def tela(page):
@@ -279,8 +302,10 @@ def ler_visor(janela, portugues):
 def somar_na_calculadora(valores):
     etapa("Calculadora")
     subprocess.Popen(["calc.exe"])
-    janela = Desktop(backend="uia").window(title_re=r"^(Calculadora|Calculator)$", control_type="Window")
-    janela.wait("visible", timeout=20)
+    hwnd = achar_janela("ApplicationFrameWindow", r"^(Calculadora|Calculator)$", 20)
+    if not hwnd:
+        raise SystemExit("a Calculadora não abriu")
+    janela = Desktop(backend="uia").window(handle=hwnd)
     portugues = janela.window_text() == "Calculadora"
     janela.set_focus()
     janela.type_keys("%1", pause=0.05)   # Alt+1: modo Padrão
