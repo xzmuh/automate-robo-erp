@@ -7,6 +7,8 @@
 3. Fornecedores: cadastra cada linha (Novo fornecedor > preenche > Salvar).
 4. Contas a pagar: lança uma conta por fornecedor, com o vencimento do dados.txt.
 5. Dá baixa nas contas que vencem em até 7 dias.
+5b. Notas fiscais: emite a nota de cada conta paga. Nota rejeitada vira um
+    ALERTA no painel do cliente, com o motivo e o que fazer.
 6. Relatórios: exporta as contas em aberto e abre o arquivo no Bloco de Notas.
 7. Abre a Calculadora por cima do ERP, soma o que ficou em aberto e confere
    com o total do ERP e com a conta feita aqui.
@@ -57,6 +59,14 @@ def log(msg):
 def etapa(titulo):
     log("")
     log(f"=== {titulo} ===")
+
+
+def ok(msg):
+    log(f"OK: {msg}")
+
+
+def alerta(msg):
+    log(f"ALERTA: {msg}")
 
 
 def ler_dados():
@@ -205,6 +215,28 @@ def dar_baixa(page):
     return pagas
 
 
+def emitir_notas(page):
+    etapa("Notas fiscais das contas pagas")
+    menu(page, "Notas fiscais")
+    linhas = linhas_da_tabela(page)
+    autorizadas, rejeitadas = 0, []
+    for i in range(linhas.count()):
+        linha = linhas.nth(i)
+        fornecedor = linha.locator("td").nth(0).inner_text()
+        linha.get_by_role("button", name="Emitir NF", exact=True).click()
+        time.sleep(PAUSA)
+        situacao = linhas.nth(i).locator("td").nth(2).inner_text().replace("\n", " ").strip()
+        if "Autorizada" in situacao:
+            autorizadas += 1
+            ok(f"Nota fiscal de {fornecedor}: {situacao.lower()}")
+        else:
+            motivo = situacao.replace("Rejeitada", "").strip()
+            rejeitadas.append(fornecedor)
+            alerta(f"Nota fiscal de {fornecedor} não foi emitida. {motivo}. Corrija o CNPJ no cadastro do fornecedor e emita a nota de novo.")
+    foto(page, "3b-notas-fiscais")
+    return autorizadas, rejeitadas
+
+
 def exportar_relatorio(page):
     etapa("Relatório")
     menu(page, "Relatórios")
@@ -290,6 +322,7 @@ def main():
             cadastrar_fornecedores(page, linhas)
             lancar_contas(page, linhas)
             pagas = dar_baixa(page)
+            notas, rejeitadas = emitir_notas(page)
             valores = exportar_relatorio(page)
             menu(page, "Contas a pagar")
             total_erp = valor_do_cartao(page, "Total em aberto")
@@ -301,13 +334,16 @@ def main():
     etapa("Resumo")
     log(f"Fornecedores cadastrados: {len(linhas)}")
     log(f"Contas lançadas: {len(linhas)} | pagas: {pagas} | em aberto: {len(valores)}")
+    log(f"Notas fiscais: {notas} autorizadas | {len(rejeitadas)} rejeitadas")
     log(f"Total em aberto no ERP: {total_erp}")
     log(f"Total pela Calculadora: {brl(resultado)}")
     log(f"Total conferido pelo robô: {brl(esperado)}")
     if pagas != len(linhas) - len(abertas_esperadas) or resultado != esperado:
-        log("ERRO: os totais não batem")
+        log(f"ERRO: os totais não batem. ERP {total_erp}, Calculadora {brl(resultado)}, robô {brl(esperado)}.")
         sys.exit(1)
-    log(f"TOTAL EM ABERTO: {brl(esperado)}")
+    ok(f"Total em aberto conferido: {brl(esperado)}")
+    if rejeitadas:
+        log(f"AVISO: {len(rejeitadas)} nota(s) ficaram para emitir à mão: {', '.join(rejeitadas)}")
 
 
 if __name__ == "__main__":
